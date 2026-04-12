@@ -1,0 +1,1 @@
+Finding the end of the routes file to identify the exact syntax error

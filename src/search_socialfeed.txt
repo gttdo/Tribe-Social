@@ -1,0 +1,5 @@
+Searching for QuickPostCreator usage in SocialFeed component.
+
+I need to find where <QuickPostCreator is used in the render section and remove it.
+
+Let me search for the main render return statement where the feed content is displayed.

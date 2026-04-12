@@ -1,0 +1,1 @@
+Looking for the skip to main content element. Based on the description, this is likely a browser accessibility feature rather than something we added. The purple background suggests it could be a focus indicator or screen reader element that's being displayed when it shouldn't be.

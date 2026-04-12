@@ -1,0 +1,9 @@
+I need to find and update where HamburgerMenu is used in the SocialFeed.tsx component.
+
+The HamburgerMenu component already has the "Create Post" button, so I just need to make sure it's connected properly to navigate to the create page.
+
+I've already added:
+- handleHamburgerCreatePost function that sets currentPage to 'create'
+- handleHamburgerProfile function
+
+Now I need to update where HamburgerMenu is rendered to pass these handlers.

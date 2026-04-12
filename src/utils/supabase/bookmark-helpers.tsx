@@ -1,9 +1,9 @@
 import { supabase } from './client';
 import { Tables, TablesInsert, TablesUpdate } from './database-types';
 
-export type PostBookmark = Tables<'post_bookmarks'>;
-export type PostBookmarkInsert = TablesInsert<'post_bookmarks'>;
-export type PostBookmarkUpdate = TablesUpdate<'post_bookmarks'>;
+export type PostBookmark = Tables<'bookmark'>;
+export type PostBookmarkInsert = TablesInsert<'bookmark'>;
+export type PostBookmarkUpdate = TablesUpdate<'bookmark'>;
 
 /**
  * Check if a post is bookmarked by the current user
@@ -19,8 +19,8 @@ export async function isPostBookmarked(postId: string): Promise<boolean> {
     }
 
     const { data, error } = await supabase
-      .from('post_bookmarks')
-      .select('id')
+      .from('bookmark')
+      .select('user_id')
       .eq('post_id', postId)
       .eq('user_id', user.id)
       .maybeSingle();
@@ -61,7 +61,7 @@ export async function bookmarkPost(postId: string): Promise<{ success: boolean; 
     };
 
     const { data, error } = await supabase
-      .from('post_bookmarks')
+      .from('bookmark')
       .insert(bookmarkData)
       .select()
       .single();
@@ -92,7 +92,7 @@ export async function unbookmarkPost(postId: string): Promise<{ success: boolean
     }
 
     const { error } = await supabase
-      .from('post_bookmarks')
+      .from('bookmark')
       .delete()
       .eq('post_id', postId)
       .eq('user_id', user.id);
@@ -163,7 +163,7 @@ export async function getUserBookmarks(limit?: number, offset?: number): Promise
     }
 
     let query = supabase
-      .from('post_bookmarks')
+      .from('bookmark')
       .select('*')
       .eq('user_id', user.id)
       .order('created_at', { ascending: false });
@@ -212,9 +212,9 @@ export async function getUserBookmarkedPosts(limit?: number, offset?: number): P
     }
 
     let query = supabase
-      .from('post_bookmarks')
+      .from('bookmark')
       .select(`
-        id,
+        post_id,
         created_at,
         posts_with_reaction_count (
           id,
@@ -255,7 +255,7 @@ export async function getUserBookmarkedPosts(limit?: number, offset?: number): P
     const posts = data?.map(bookmark => ({
       ...bookmark.posts_with_reaction_count,
       bookmarked_at: bookmark.created_at,
-      bookmark_id: bookmark.id
+      bookmark_post_id: bookmark.post_id
     })) || [];
 
     return { 
@@ -275,7 +275,7 @@ export async function getUserBookmarkedPosts(limit?: number, offset?: number): P
 export async function getPostBookmarkCount(postId: string): Promise<{ success: boolean; count?: number; error?: string }> {
   try {
     const { count, error } = await supabase
-      .from('post_bookmarks')
+      .from('bookmark')
       .select('*', { count: 'exact', head: true })
       .eq('post_id', postId);
 
@@ -301,7 +301,7 @@ export async function getPostsBookmarkCounts(postIds: string[]): Promise<{
 }> {
   try {
     const { data, error } = await supabase
-      .from('post_bookmarks')
+      .from('bookmark')
       .select('post_id')
       .in('post_id', postIds);
 
@@ -342,7 +342,7 @@ export async function getUserBookmarkStatuses(postIds: string[]): Promise<{
     }
 
     const { data, error } = await supabase
-      .from('post_bookmarks')
+      .from('bookmark')
       .select('post_id')
       .eq('user_id', user.id)
       .in('post_id', postIds);
@@ -368,24 +368,25 @@ export async function getUserBookmarkStatuses(postIds: string[]): Promise<{
 }
 
 /**
- * Delete bookmark by ID (admin/cleanup function)
+ * Delete bookmark by user_id and post_id composite key (admin/cleanup function)
  */
-export async function deleteBookmarkById(bookmarkId: string): Promise<{ success: boolean; error?: string }> {
+export async function deleteBookmarkById(userId: string, postId: string): Promise<{ success: boolean; error?: string }> {
   try {
     const { error } = await supabase
-      .from('post_bookmarks')
+      .from('bookmark')
       .delete()
-      .eq('id', bookmarkId);
+      .eq('user_id', userId)
+      .eq('post_id', postId);
 
     if (error) {
-      console.error('Error deleting bookmark by ID:', error);
+      console.error('Error deleting bookmark:', error);
       return { success: false, error: error.message };
     }
 
-    console.log('Bookmark deleted successfully:', bookmarkId);
+    console.log('Bookmark deleted successfully:', { userId, postId });
     return { success: true };
   } catch (error) {
-    console.error('Exception deleting bookmark by ID:', error);
+    console.error('Exception deleting bookmark:', error);
     return { success: false, error: 'Failed to delete bookmark' };
   }
 }

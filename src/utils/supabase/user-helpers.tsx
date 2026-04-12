@@ -15,7 +15,7 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 export async function getPublicProfile(userId: string): Promise<PublicProfile> {
   const { data, error } = await supabase
     .from('user_public_profile')
-    .select('id, username, profile_image_url, description, xp, created_at')
+    .select('id, username, avatar_url, bio, xp, created_at')
     .eq('id', userId)
     .single();
 
@@ -30,7 +30,7 @@ export async function fetchMyPublicProfile(): Promise<PublicProfile> {
 
   const { data, error } = await supabase
     .from('user_public_profile')
-    .select('id, username, profile_image_url, description, xp, profile_privacy, created_at')
+    .select('id, username, avatar_url, bio, xp, is_private, created_at')
     .eq('id', user.id)
     .single();
 
@@ -81,8 +81,8 @@ export async function fetchUserStats(userId: string) {
     // Fallback to manual calculation
     const [postsResult, followersResult, followingResult] = await Promise.allSettled([
       supabase.from('posts').select('id', { count: 'exact' }).eq('user_id', userId),
-      supabase.from('follows').select('id', { count: 'exact' }).eq('following_id', userId),
-      supabase.from('follows').select('id', { count: 'exact' }).eq('follower_id', userId)
+      supabase.from('follow').select('follower_id', { count: 'exact' }).eq('followed_id', userId),
+      supabase.from('follow').select('followed_id', { count: 'exact' }).eq('follower_id', userId)
     ]);
 
     const postCount = postsResult.status === 'fulfilled' ? postsResult.value.count || 0 : 0;
@@ -255,7 +255,7 @@ async function verifyBioUpdate(userId: string, expectedBio: string): Promise<voi
     await new Promise(resolve => setTimeout(resolve, 500));
     
     const { data, error } = await supabase
-      .from('profiles')
+      .from('profile')
       .select('bio')
       .eq('id', userId)
       .single();
@@ -294,7 +294,7 @@ async function updateBioFallback(userId: string, bio: string): Promise<void> {
     
     // Update bio in profiles table using upsert
     const { data, error } = await supabase
-      .from('profiles')
+      .from('profile')
       .upsert({ 
         id: userId,
         bio: bio
@@ -393,7 +393,7 @@ export async function updateBioSimple(userId: string, bio: string): Promise<void
     const { supabase } = await import('./client');
     
     const { data, error } = await supabase
-      .from('profiles')
+      .from('profile')
       .upsert({ 
         id: userId,
         bio: trimmed
@@ -426,11 +426,11 @@ export async function updateProfile(userId: string, updates: { profileImageUrl?:
   try {
     console.log('🔄 Starting profile update...', { userId: userId.substring(0, 8) + '...', updates });
     
-    // Update in users table (main profile table)
+    // Update in profile table (main profile table)
     const { data: userData, error: userError } = await supabase
-      .from('users')
-      .update({ 
-        profile_image_url: updates.profileImageUrl,
+      .from('profile')
+      .update({
+        avatar_url: updates.profileImageUrl,
         updated_at: new Date().toISOString()
       })
       .eq('id', userId)

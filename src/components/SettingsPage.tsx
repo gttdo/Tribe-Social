@@ -3,7 +3,6 @@ import { Button } from './ui/button';
 import { Card, CardContent, CardHeader } from './ui/card';
 import { Switch } from './ui/switch';
 import { Separator } from './ui/separator';
-import { ConnectionTestPage } from './ConnectionTestPage';
 import { toast } from 'sonner@2.0.3';
 import { 
   ArrowLeft, 
@@ -14,7 +13,6 @@ import {
   Globe,
   HelpCircle,
   ChevronRight,
-  Database,
   Wrench,
   Camera,
   Mic,
@@ -37,12 +35,6 @@ export function SettingsPage({ userInfo, userResult, onBack, onLogout, onGlobalA
   const [notifications, setNotifications] = useState(userInfo?.notificationsEnabled ?? true);
   const [privateProfile, setPrivateProfile] = useState(false);
   const [activityStatus, setActivityStatus] = useState(true);
-  const [showConnectionTest, setShowConnectionTest] = useState(false);
-
-  if (showConnectionTest) {
-    return <ConnectionTestPage onBack={() => setShowConnectionTest(false)} />;
-  }
-
   const settingSections = [
     {
       title: 'Privacy & Safety',
@@ -118,13 +110,6 @@ export function SettingsPage({ userInfo, userResult, onBack, onLogout, onGlobalA
     {
       title: 'Developer',
       items: [
-        {
-          icon: Database,
-          label: 'Connection Test',
-          description: 'Test Supabase and backend connections',
-          type: 'action' as const,
-          action: () => setShowConnectionTest(true)
-        },
         {
           icon: Wrench,
           label: 'Debug Info',

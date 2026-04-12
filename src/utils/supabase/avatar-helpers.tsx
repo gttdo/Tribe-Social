@@ -250,15 +250,8 @@ export async function uploadAvatar(
     let currentVersion = 0;
     
     try {
-      const { data: profileData, error: versionError } = await supabase
-        .from('profiles')
-        .select('avatar_version')
-        .eq('id', userId)
-        .single();
-      
-      if (!versionError && profileData) {
-        currentVersion = profileData.avatar_version || 0;
-      }
+      // Avatar version no longer stored in DB - use timestamp-based versioning
+      currentVersion = Math.floor(Date.now() / 1000);
     } catch (error) {
       console.warn('Could not get current avatar version, starting from 0:', error);
       currentVersion = 0;
@@ -539,23 +532,22 @@ For detailed help: Add "?storage-instructions" to your URL`);
     // Update user profile with new avatar URL and version (database-first avatar system)
     console.log('💾 Updating user profile...');
     
-    // Update profiles table with new avatar URL and version for database-first avatar system
-    console.log('💾 Updating profiles table with new avatar URL...');
+    // Update profile table with new avatar URL and version for database-first avatar system
+    console.log('💾 Updating profile table with new avatar URL...');
     
     const updateData = {
       avatar_url: avatarUrl,
-      avatar_version: newVersion,
       updated_at: new Date().toISOString()
     };
     
     try {
       const { error: updateError } = await supabase
-        .from('profiles')
+        .from('profile')
         .update(updateData)
         .eq('id', userId);
       
       if (updateError) {
-        console.error('❌ Failed to update profiles table:', updateError);
+        console.error('❌ Failed to update profile table:', updateError);
         throw new Error(`Failed to update profile: ${updateError.message}`);
       }
       
@@ -625,17 +617,11 @@ Add "?storage-instructions" to your URL for detailed help.`;
  */
 export async function removeAvatar(userId: string): Promise<AvatarUploadResult> {
   try {
-    // Try to get current avatar version from profiles table
+    // Try to get current avatar version from profile table
     let currentVersion = 0;
     
     try {
-      const { data: profileData } = await supabase
-        .from('profiles')
-        .select('avatar_version')
-        .eq('id', userId)
-        .single();
-
-      currentVersion = profileData?.avatar_version || 0;
+      currentVersion = Math.floor(Date.now() / 1000);
     } catch (error: any) {
       console.warn('Could not get avatar version for cleanup:', error);
       currentVersion = 0;
@@ -657,12 +643,11 @@ export async function removeAvatar(userId: string): Promise<AvatarUploadResult> 
       }
     }
 
-    // Update profiles table to remove avatar URL (database-first avatar system)
+    // Update profile table to remove avatar URL (database-first avatar system)
     const { error: updateError } = await supabase
-      .from('profiles')
+      .from('profile')
       .update({
         avatar_url: null,
-        avatar_version: null,
         updated_at: new Date().toISOString()
       })
       .eq('id', userId);
@@ -711,18 +696,8 @@ export function getAvatarUrl(userId: string, version: number, size: 'small' | 'm
  */
 export async function getUserAvatarVersion(userId: string): Promise<number> {
   try {
-    const { data: profileData, error } = await supabase
-      .from('profiles')
-      .select('avatar_version')
-      .eq('id', userId)
-      .single();
-
-    if (error) {
-      console.warn('Could not get avatar version from profiles:', error);
-      return 1;
-    }
-
-    return profileData?.avatar_version || 1;
+    // Avatar version no longer stored - use timestamp
+    return Math.floor(Date.now() / 1000);
   } catch (error) {
     console.warn('Could not get user avatar version:', error);
     return 1; // Default fallback

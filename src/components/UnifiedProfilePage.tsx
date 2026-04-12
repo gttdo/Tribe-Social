@@ -6,7 +6,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 import { Skeleton } from './ui/skeleton';
 import { FollowButton } from './FollowButton';
 import { SafeBio, SafeUsername } from './SafeText';
-import { WorkingBioEditor } from './WorkingBioEditor';
 import { LevelProgressBar } from './LevelProgressBar';
 import { ProfilePostsSection } from './ProfilePostsSection';
 import { SavedPostsGrid } from './SavedPostsGrid';
@@ -50,7 +49,6 @@ interface ProfileData {
   username: string;
   bio: string;
   avatar_url?: string;
-  avatar_version?: number;
 }
 
 export function UnifiedProfilePage({ 
@@ -134,8 +132,8 @@ export function UnifiedProfilePage({
       console.log('🔄 Loading profile for ID:', profileId.substring(0, 8) + '...', { isOwner: isOwnerProfile });
 
       const { data, error } = await supabase
-        .from('profiles')
-        .select('id, display_name, bio, avatar_url, avatar_version')
+        .from('profile')
+        .select('id, display_name, bio, avatar_url')
         .eq('id', profileId)
         .maybeSingle();
 
@@ -155,13 +153,13 @@ export function UnifiedProfilePage({
           
           // Create a basic profile entry
           const { data: newProfile, error: createError } = await supabase
-            .from('profiles')
+            .from('profile')
             .insert({
               id: profileId,
               display_name: session.user.email?.split('@')[0] || 'User',
               bio: null
             })
-            .select('id, display_name, bio, avatar_url, avatar_version')
+            .select('id, display_name, bio, avatar_url')
             .single();
           
           if (!createError && newProfile) {
@@ -183,8 +181,7 @@ export function UnifiedProfilePage({
 
       console.log('✅ Profile loaded from database:', {
         hasData: !!data,
-        hasAvatar: !!data?.avatar_url,
-        avatarVersion: data?.avatar_version
+        hasAvatar: !!data?.avatar_url
       });
 
       // Transform the data to use consistent field names
@@ -192,8 +189,7 @@ export function UnifiedProfilePage({
         id: data.id,
         username: data.display_name || 'Unknown User',
         bio: data.bio || '',
-        avatar_url: data.avatar_url,
-        avatar_version: data.avatar_version
+        avatar_url: data.avatar_url
       };
       
       setProfile(profileData);
@@ -203,7 +199,7 @@ export function UnifiedProfilePage({
       if (src) {
         if (src.startsWith('http')) {
           // Absolute URL - add version parameter
-          src = `${src}?v=${data.avatar_version ?? 0}`;
+          src = src;
         } else {
           // Stored as path in the avatars bucket
           const { data: pub } = supabase.storage
@@ -211,7 +207,7 @@ export function UnifiedProfilePage({
             .getPublicUrl(src, { 
               transform: { width: 256, height: 256, resize: 'cover' } 
             });
-          src = `${pub.publicUrl}?v=${data.avatar_version ?? 0}`;
+          src = pub.publicUrl;
         }
       }
       
@@ -248,13 +244,13 @@ export function UnifiedProfilePage({
 
       // Count followers
       const { count: followersCount, error: followersError } = await supabase
-        .from('follows')
+        .from('follow')
         .select('*', { count: 'exact', head: true })
-        .eq('following_id', targetUserId);
+        .eq('followed_id', targetUserId);
 
       // Count following
       const { count: followingCount, error: followingError } = await supabase
-        .from('follows')
+        .from('follow')
         .select('*', { count: 'exact', head: true })
         .eq('follower_id', targetUserId);
 
@@ -428,7 +424,7 @@ export function UnifiedProfilePage({
       
       // Update bio in Supabase profiles table
       const { error } = await supabase
-        .from('profiles')
+        .from('profile')
         .update({ bio: newBio })
         .eq('id', profileId);
       
@@ -925,21 +921,11 @@ export function UnifiedProfilePage({
               </div>
 
               {/* Bio Section */}
-              {isOwner && profileId ? (
-                <WorkingBioEditor
-                  userId={profileId}
-                  currentBio={profile.bio}
-                  onBioUpdate={handleBioUpdate}
-                  username={profile.username}
-                  className="mt-1"
+              {profile.bio && (
+                <SafeBio
+                  bio={profile.bio}
+                  className="text-pearl-white/90 leading-relaxed"
                 />
-              ) : (
-                profile.bio && (
-                  <SafeBio 
-                    bio={profile.bio} 
-                    className="text-pearl-white/90 leading-relaxed" 
-                  />
-                )
               )}
             </div>
           </div>
@@ -967,21 +953,11 @@ export function UnifiedProfilePage({
             )}
             
             {/* Mobile Bio Section */}
-            {isOwner && profileId ? (
-              <WorkingBioEditor
-                userId={profileId}
-                currentBio={profile.bio}
-                onBioUpdate={handleBioUpdate}
-                username={profile.username}
-                className="mt-2"
+            {profile.bio && (
+              <SafeBio
+                bio={profile.bio}
+                className="text-pearl-white/90 leading-relaxed text-sm"
               />
-            ) : (
-              profile.bio && (
-                <SafeBio 
-                  bio={profile.bio} 
-                  className="text-pearl-white/90 leading-relaxed text-sm" 
-                />
-              )
             )}
           </div>
 

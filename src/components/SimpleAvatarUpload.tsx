@@ -6,7 +6,6 @@ import { Upload, Camera, X, AlertCircle, RefreshCw } from 'lucide-react';
 import { toast } from 'sonner@2.0.3';
 import { uploadAvatar } from '../utils/supabase/avatar-helpers';
 import { ensureStorageBuckets } from '../utils/storage-setup';
-import { StorageSetupInstructions } from './StorageSetupInstructions';
 import { StableCameraModal } from './StableCameraModal';
 import { AvatarCropper } from './AvatarCropper';
 import { useIsMobile } from './ui/use-mobile';
@@ -277,10 +276,15 @@ export function SimpleAvatarUpload({
 
       {/* Storage Error Section */}
       {storageError && (
-        <StorageSetupInstructions 
-          compact={true}
-          onDismiss={() => setStorageError(null)}
-        />
+        <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-lg">
+          <p className="text-red-400 text-sm">{storageError}</p>
+          <button
+            onClick={() => setStorageError(null)}
+            className="text-muted-lavender text-xs mt-1 underline"
+          >
+            Dismiss
+          </button>
+        </div>
       )}
     </div>
   );

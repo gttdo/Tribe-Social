@@ -30,10 +30,8 @@ interface SavedPostsPageProps {
 
 interface UserProfile {
   id: string;
-  username: string;
-  nickname?: string;
-  profile_image_url?: string;
-  profile_privacy?: 'public' | 'private';
+  display_name: string;
+  avatar_url?: string;
 }
 
 export function SavedPostsPage({ 
@@ -82,8 +80,8 @@ export function SavedPostsPage({
 
       // Get user profile information
       const { data: profile, error: profileError } = await supabase
-        .from('users')
-        .select('id, username, profile_image_url, profile_privacy')
+        .from('profile')
+        .select('id, display_name, avatar_url')
         .eq('id', userId)
         .maybeSingle();
 
@@ -94,10 +92,7 @@ export function SavedPostsPage({
         return;
       }
 
-      setUserProfile({
-        ...profile,
-        nickname: profile.username || 'User'
-      });
+      setUserProfile(profile);
       setCanViewSavedPosts(true);
 
     } catch (error) {
@@ -164,7 +159,7 @@ export function SavedPostsPage({
         const feedPost: FeedPost = {
           id: backendPost.id,
           username: backendPost.username || 'unknown',
-          nickname: backendPost.nickname || backendPost.username || 'User',
+          nickname: backendPost.display_name || backendPost.username || 'User',
           coreRealm: 'mirrorcore', // Default realm
           timestamp: formatTimestamp(backendPost.createdAt || new Date().toISOString()),
           caption: backendPost.content || backendPost.caption || '',
@@ -462,10 +457,10 @@ export function SavedPostsPage({
           
           <div className="flex items-center space-x-3">
             <div className="w-8 h-8 rounded-full bg-gradient-to-br from-neon-lilac/20 to-electric-blue/20 flex items-center justify-center">
-              {userProfile?.profile_image_url ? (
-                <img 
-                  src={userProfile.profile_image_url} 
-                  alt={userProfile.nickname}
+              {userProfile?.avatar_url ? (
+                <img
+                  src={userProfile.avatar_url}
+                  alt={userProfile.display_name}
                   className="w-full h-full rounded-full object-cover"
                 />
               ) : (
@@ -474,7 +469,7 @@ export function SavedPostsPage({
             </div>
             <div>
               <h1 className="font-headline font-medium text-pearl-white">
-                {userProfile?.nickname || 'User'}'s Saved Posts
+                {userProfile?.display_name || 'User'}'s Saved Posts
               </h1>
             </div>
           </div>

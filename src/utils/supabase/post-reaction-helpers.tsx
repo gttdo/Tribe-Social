@@ -3,7 +3,7 @@ import { validateUUID, validatePostIds, isValidUUID as validateUUIDFormat } from
 import { criticalUUIDCheck, criticalUUIDArrayCheck, criticalDBQuery, validateSupabaseInQuery, validateSupabaseEqQuery } from '../database-query-guards';
 
 /**
- * Check if a user has liked a specific post using post_reactions table
+ * Check if a user has liked a specific post using post_like table
  */
 export async function getUserLikeStatus(postId: string, userId: string): Promise<boolean> {
   try {
@@ -22,11 +22,10 @@ export async function getUserLikeStatus(postId: string, userId: string): Promise
     }
 
     const { data, error } = await supabase
-      .from('post_reactions')
-      .select('id')
+      .from('post_like')
+      .select('user_id')
       .eq('post_id', validPostId)
       .eq('user_id', validUserId)
-      .eq('reaction', 'like')
       .maybeSingle();
 
     if (error) {
@@ -50,7 +49,7 @@ function isValidUUID(str: string | null | undefined): boolean {
 }
 
 /**
- * Toggle like status for a post using post_reactions table
+ * Toggle like status for a post using post_like table
  */
 export async function togglePostLike(postId: string, userId: string): Promise<{ liked: boolean; error?: string }> {
   try {
@@ -70,11 +69,10 @@ export async function togglePostLike(postId: string, userId: string): Promise<{ 
 
     // Check if user already liked this post
     const { data: existingReaction, error: checkError } = await supabase
-      .from('post_reactions')
-      .select('id')
+      .from('post_like')
+      .select('user_id')
       .eq('post_id', validPostId)
       .eq('user_id', validUserId)
-      .eq('reaction', 'like')
       .maybeSingle();
 
     if (checkError) {
@@ -83,13 +81,12 @@ export async function togglePostLike(postId: string, userId: string): Promise<{ 
     }
 
     if (existingReaction) {
-      // Unlike: Remove the reaction
+      // Unlike: Remove the like
       const { error: deleteError } = await supabase
-        .from('post_reactions')
+        .from('post_like')
         .delete()
         .eq('post_id', validPostId)
-        .eq('user_id', validUserId)
-        .eq('reaction', 'like');
+        .eq('user_id', validUserId);
 
       if (deleteError) {
         console.error('Error removing like:', deleteError);
@@ -98,13 +95,12 @@ export async function togglePostLike(postId: string, userId: string): Promise<{ 
 
       return { liked: false };
     } else {
-      // Like: Add the reaction
+      // Like: Add the like
       const { error: insertError } = await supabase
-        .from('post_reactions')
+        .from('post_like')
         .insert({
           post_id: validPostId,
           user_id: validUserId,
-          reaction: 'like',
           created_at: new Date().toISOString()
         });
 
@@ -156,10 +152,9 @@ export async function getBulkLikeStatus(postIds: string[], userId: string): Prom
         }
 
         const { data, error } = await supabase
-          .from('post_reactions')
+          .from('post_like')
           .select('post_id')
           .eq('user_id', safeUserId)
-          .eq('reaction', 'like')
           .in('post_id', safePostIds);
 
         if (error) {
@@ -192,9 +187,9 @@ export async function getBulkLikeStatus(postIds: string[], userId: string): Prom
 }
 
 /**
- * Get reaction count for a specific post and reaction type
+ * Get like count for a specific post
  */
-export async function getReactionCount(postId: string, reactionType: string = 'like'): Promise<number> {
+export async function getReactionCount(postId: string): Promise<number> {
   try {
     // Validate post ID using the validation middleware
     const validPostId = validateUUID(postId);
@@ -204,10 +199,9 @@ export async function getReactionCount(postId: string, reactionType: string = 'l
     }
 
     const { count, error } = await supabase
-      .from('post_reactions')
+      .from('post_like')
       .select('*', { count: 'exact', head: true })
-      .eq('post_id', validPostId)
-      .eq('reaction', reactionType);
+      .eq('post_id', validPostId);
 
     if (error) {
       console.error('Error getting reaction count:', error);
@@ -222,7 +216,7 @@ export async function getReactionCount(postId: string, reactionType: string = 'l
 }
 
 /**
- * Get all reactions for a specific post
+ * Get all likes for a specific post
  */
 export async function getPostReactions(postId: string): Promise<{ reaction: string; count: number; users: any[] }[]> {
   try {
@@ -234,22 +228,21 @@ export async function getPostReactions(postId: string): Promise<{ reaction: stri
     }
 
     const { data, error } = await supabase
-      .from('post_reactions')
+      .from('post_like')
       .select(`
-        reaction,
         user_id,
         created_at,
-        users:users!post_reactions_user_id_fkey (
+        users:profile!post_like_user_id_fkey (
           id,
           username,
-          profile_image_url
+          avatar_url
         )
       `)
       .eq('post_id', validatedPostId)
       .order('created_at', { ascending: false });
 
     if (error) {
-      console.error('Error getting post reactions:', error);
+      console.error('Error getting post likes:', error);
       return [];
     }
 
@@ -257,28 +250,21 @@ export async function getPostReactions(postId: string): Promise<{ reaction: stri
       return [];
     }
 
-    // Group by reaction type
-    const reactionGroups: Record<string, any[]> = {};
-    data.forEach(reaction => {
-      if (!reactionGroups[reaction.reaction]) {
-        reactionGroups[reaction.reaction] = [];
-      }
-      reactionGroups[reaction.reaction].push({
-        userId: reaction.user_id,
-        username: reaction.users?.username || 'Unknown',
-        avatar: reaction.users?.profile_image_url,
-        createdAt: reaction.created_at
-      });
-    });
+    // Build users list for the single "like" reaction type
+    const users = data.map(like => ({
+      userId: like.user_id,
+      username: like.users?.username || 'Unknown',
+      avatar: like.users?.avatar_url,
+      createdAt: like.created_at
+    }));
 
-    // Convert to array format
-    return Object.entries(reactionGroups).map(([reaction, users]) => ({
-      reaction,
+    return [{
+      reaction: 'like',
       count: users.length,
       users
-    }));
+    }];
   } catch (error) {
-    console.error('Exception getting post reactions:', error);
+    console.error('Exception getting post likes:', error);
     return [];
   }
 }

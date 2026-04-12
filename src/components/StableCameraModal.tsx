@@ -22,6 +22,7 @@ export function StableCameraModal({ onClose, onCapture, avatarMode = false }: St
   const [recordedVideoUrl, setRecordedVideoUrl] = useState<string>('');
   const [facingMode, setFacingMode] = useState<'user' | 'environment'>('user');
   const [isMobile, setIsMobile] = useState(false);
+  const [captureMode, setCaptureMode] = useState<'photo' | 'video'>('photo');
 
   // Check if device is mobile on mount
   React.useEffect(() => {
@@ -289,10 +290,10 @@ export function StableCameraModal({ onClose, onCapture, avatarMode = false }: St
         <div className="flex items-center justify-between mb-6">
           <div>
             <h2 className="font-headline text-pearl-white">
-              {avatarMode ? 'Say Cheese! 📸' : 'Camera Post'}
+              {avatarMode ? 'Take a Photo' : 'Camera'}
             </h2>
             <p className="text-sm text-muted-lavender">
-              {avatarMode ? 'Capture your perfect avatar photo' : 'Choose Photo or Video mode'}
+              {avatarMode ? 'Capture your avatar photo' : isRecording ? 'Recording...' : captureMode === 'photo' ? 'Tap the button to take a photo' : 'Tap the button to start recording'}
             </p>
           </div>
           {onClose && (
@@ -385,106 +386,68 @@ export function StableCameraModal({ onClose, onCapture, avatarMode = false }: St
         {/* Controls */}
         {!error && !recordedVideoUrl && (
           <div className="space-y-4">
-            {/* Mode indicator - only show in non-avatar mode */}
-            {!avatarMode && (
-              <div className="flex items-center justify-center space-x-4 mb-4">
-                <div className="flex items-center justify-center space-x-1 px-3 py-1 rounded-full bg-electric-blue/10 border border-electric-blue/20">
-                  <Camera className="w-4 h-4 text-electric-blue" />
-                  <span className="text-sm text-electric-blue font-medium">Photo Mode</span>
-                </div>
-                <div className="text-muted-lavender">•</div>
-                <div className="flex items-center justify-center space-x-1 px-3 py-1 rounded-full bg-soft-blush/10 border border-soft-blush/20">
-                  <Video className="w-4 h-4 text-soft-blush" />
-                  <span className="text-sm text-soft-blush font-medium">Video Mode</span>
-                </div>
-              </div>
-            )}
-            
-            {/* Camera flip button - show as a separate row on mobile */}
+            {/* Camera flip button */}
             {isMobile && (
-              <div className="flex items-center justify-center mb-4">
+              <div className="flex items-center justify-center">
                 <button
                   onClick={toggleCamera}
                   disabled={isLoading || isRecording}
-                  className="flex items-center space-x-2 px-4 py-2 bg-muted-lavender/10 border border-muted-lavender/30 rounded-lg text-muted-lavender hover:bg-muted-lavender/20 hover:text-pearl-white transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed touch-target"
-                  title={`Switch to ${facingMode === 'user' ? 'back' : 'front'} camera`}
+                  className="flex items-center space-x-2 px-4 py-2 bg-muted-lavender/10 border border-muted-lavender/30 rounded-full text-muted-lavender hover:bg-muted-lavender/20 hover:text-pearl-white transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <RotateCcw className="w-4 h-4" />
-                  <span className="text-sm">{facingMode === 'user' ? 'Switch to Back Camera' : 'Switch to Front Camera'}</span>
+                  <span className="text-sm">Flip</span>
                 </button>
               </div>
             )}
-            
-            <div className="flex items-center justify-center space-x-4">
-              {/* Photo button */}
+
+            {/* Mode toggle + capture button */}
+            <div className="flex flex-col items-center space-y-4">
+              {/* Single capture button */}
               <button
-                onClick={capturePhoto}
+                onClick={captureMode === 'video' ? (isRecording ? stopRecording : startRecording) : capturePhoto}
                 disabled={isLoading}
-                style={{
-                  padding: '12px 24px',
-                  borderRadius: '12px',
-                  background: 'linear-gradient(to right, #C084FC, #7DD3FC)',
-                  color: 'white',
-                  border: 'none',
-                  cursor: isLoading ? 'not-allowed' : 'pointer',
-                  opacity: isLoading ? 0.5 : 1,
-                  fontSize: '16px',
-                  fontWeight: '500',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  transition: 'all 0.2s ease'
-                }}
-                onMouseEnter={(e) => {
-                  if (!isLoading) e.currentTarget.style.opacity = '0.9';
-                }}
-                onMouseLeave={(e) => {
-                  if (!isLoading) e.currentTarget.style.opacity = '1';
-                }}
+                className={`w-16 h-16 rounded-full flex items-center justify-center transition-all duration-200 ${
+                  isRecording
+                    ? 'bg-glitch-red hover:bg-glitch-red/80 scale-110'
+                    : 'bg-gradient-to-br from-neon-lilac to-electric-blue hover:opacity-90'
+                } disabled:opacity-50 disabled:cursor-not-allowed`}
+                aria-label={captureMode === 'video' ? (isRecording ? 'Stop recording' : 'Start recording') : 'Take photo'}
               >
-                <Camera className="w-5 h-5" />
-                {avatarMode ? 'Capture Photo' : 'Photo'}
+                {isRecording ? (
+                  <Square className="w-6 h-6 text-white" />
+                ) : captureMode === 'video' ? (
+                  <Video className="w-6 h-6 text-white" />
+                ) : (
+                  <Camera className="w-6 h-6 text-white" />
+                )}
               </button>
 
-              {/* Video recording button - hide in avatar mode */}
+              {/* Mode toggle - Photo / Video (not shown in avatar mode) */}
               {!avatarMode && (
-                <button
-                  onClick={isRecording ? stopRecording : startRecording}
-                  disabled={isLoading}
-                  style={{
-                    padding: '12px 24px',
-                    borderRadius: '12px',
-                    background: isRecording ? '#FF6B6B' : 'linear-gradient(to right, #7DD3FC, #C084FC)',
-                    color: 'white',
-                    border: 'none',
-                    cursor: isLoading ? 'not-allowed' : 'pointer',
-                    opacity: isLoading ? 0.5 : 1,
-                    fontSize: '16px',
-                    fontWeight: '500',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '8px',
-                    transition: 'all 0.2s ease'
-                  }}
-                  onMouseEnter={(e) => {
-                    if (!isLoading) e.currentTarget.style.opacity = '0.9';
-                  }}
-                  onMouseLeave={(e) => {
-                    if (!isLoading) e.currentTarget.style.opacity = '1';
-                  }}
-                >
-                  {isRecording ? (
-                    <>
-                      <Square className="w-5 h-5" />
-                      Stop
-                    </>
-                  ) : (
-                    <>
-                      <Video className="w-5 h-5" />
-                      Record
-                    </>
-                  )}
-                </button>
+                <div className="flex items-center bg-muted-lavender/10 rounded-full p-1 border border-border/20">
+                  <button
+                    onClick={() => setCaptureMode('photo')}
+                    disabled={isRecording}
+                    className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all duration-200 ${
+                      captureMode === 'photo'
+                        ? 'bg-neon-lilac/20 text-pearl-white'
+                        : 'text-muted-lavender/60 hover:text-pearl-white'
+                    } disabled:opacity-50`}
+                  >
+                    Photo
+                  </button>
+                  <button
+                    onClick={() => setCaptureMode('video')}
+                    disabled={isRecording}
+                    className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all duration-200 ${
+                      captureMode === 'video'
+                        ? 'bg-electric-blue/20 text-pearl-white'
+                        : 'text-muted-lavender/60 hover:text-pearl-white'
+                    } disabled:opacity-50`}
+                  >
+                    Video
+                  </button>
+                </div>
               )}
             </div>
           </div>

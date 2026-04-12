@@ -86,9 +86,9 @@ export async function resolveUserId(params: { userId?: string; username?: string
     console.log('Resolving user ID from username:', username);
     try {
       const { data, error } = await supabase
-        .from('users')
+        .from('profile')
         .select('id')
-        .eq('username', username)
+        .eq('display_name', username)
         .maybeSingle();
       
       if (error) {

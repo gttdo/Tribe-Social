@@ -144,8 +144,8 @@ export default async function We() {
         );
         
         const userQueryPromise = supabase
-          .from('users')
-          .select('id, username, profile_image_url')
+          .from('profile')
+          .select('id, username, avatar_url')
           .in('id', userIds);
           
         const userResult = await Promise.race([userQueryPromise, userTimeoutPromise]);

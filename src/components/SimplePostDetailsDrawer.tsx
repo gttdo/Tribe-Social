@@ -87,7 +87,7 @@ export function SimplePostDetailsDrawer({
         .from('posts')
         .select(`
           *,
-          users!inner(username, profile_image_url)
+          author:profile!user_id(username, avatar_url)
         `)
         .eq('id', postId)
         .single();

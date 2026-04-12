@@ -7,7 +7,7 @@ import { Button } from './ui/button';
 import { Avatar, AvatarFallback } from './ui/avatar';
 import { PostTypeCard } from './PostTypeCard';
 import { QuickPostCreator } from './QuickPostCreator';
-import { CreateContentPage } from './CreateContentPage';
+import { PostComposer } from './post/PostComposer';
 import { CommentsPage } from './CommentsPage';
 import { SimplePostDetailsDrawer } from './SimplePostDetailsDrawer';
 import { UnifiedProfilePage } from './UnifiedProfilePage';
@@ -350,11 +350,11 @@ export function SocialFeed({
               like_count,
               comment_count,
               created_at,
-              profiles (
+              profile (
                 id,
                 display_name,
                 avatar_url,
-                avatar_version
+                
               )
             `)
             .order('created_at', { ascending: false })
@@ -383,8 +383,8 @@ export function SocialFeed({
           // Note: We now have profile data from the join, but keep fallback for users table
           const userIds = [...new Set(postsData.map(post => post.user_id).filter(Boolean))];
           const userQueryPromise = supabase
-            .from('users')
-            .select('id, username, profile_image_url')
+            .from('profile')
+            .select('id, display_name, avatar_url')
             .in('id', userIds);
             
           const userTimeoutPromise = new Promise((_, reject) => 
@@ -411,11 +411,11 @@ export function SocialFeed({
             // Use profile data from join first, fallback to users table data, then to safe defaults
             let profileData = null;
             
-            if (post.profiles) {
+            if (post.profile) {
               profileData = {
-                ...post.profiles,
+                ...post.profile,
                 // Map display_name to username for compatibility
-                username: post.profiles.display_name || 'Unknown User'
+                username: post.profile.display_name || 'Unknown User'
               };
             } else {
               // Fallback to users table data
@@ -429,8 +429,7 @@ export function SocialFeed({
                 id: post.user_id,
                 username: 'Unknown User',
                 display_name: 'Unknown User',
-                avatar_url: null,
-                avatar_version: 0
+                avatar_url: null
               };
             }
             
@@ -1049,7 +1048,7 @@ export function SocialFeed({
       const { supabase } = await import('../utils/supabase/client');
       
       const { data: profile, error } = await supabase
-        .from('profiles')
+        .from('profile')
         .select('id')
         .eq('display_name', userIdentifier)
         .single();
@@ -1620,10 +1619,9 @@ export function SocialFeed({
   // Render different pages based on currentPage state
   if (currentPage === 'create') {
     return (
-      <CreateContentPage
-        userResult={userResult}
+      <PostComposer
         onBack={() => setCurrentPage('feed')}
-        onContentCreated={handlePostCreated}
+        onPostCreated={handlePostCreated}
       />
     );
   }
@@ -1652,8 +1650,8 @@ export function SocialFeed({
         currentUser={userInfo ? {
           id: userInfo.id || session?.user?.id || '',
           username: userInfo.username,
-          description: userInfo.description,
-          profile_image_url: userInfo.profileImageUrl
+          bio: userInfo.bio,
+          avatar_url: userInfo.profileImageUrl
         } : null}
         onBack={() => setCurrentPage('profile')}
         onProfileUpdate={(updatedUser) => {

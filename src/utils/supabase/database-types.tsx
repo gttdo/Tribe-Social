@@ -9,57 +9,51 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      users: {
+      profile: {
         Row: {
           id: string
+          username: string
+          display_name: string | null
+          bio: string | null
+          avatar_url: string | null
+          xp: number
+          level: number
+          follower_count: number
+          following_count: number
+          post_count: number
+          is_private: boolean
           created_at: string
-          email: string | null
-          phone: string | null
-          username: string | null
-          core_realm: 'MIRRORCORE' | 'EMBERCORE' | 'SHADOWCORE' | null
-          sub_realm: string | null
-          xp: number | null
-          level: number | null
-          achievement_ids: string[] | null  // Changed from achievements to achievement_ids
-          description: string | null
-          follower_count: number | null
-          following_count: number | null
-          profile_privacy: 'public' | 'private' | null
-          profile_image_url: string | null  // Added profile_image_url column
+          updated_at: string
         }
         Insert: {
           id: string
+          username: string
+          display_name?: string | null
+          bio?: string | null
+          avatar_url?: string | null
+          xp?: number
+          level?: number
+          follower_count?: number
+          following_count?: number
+          post_count?: number
+          is_private?: boolean
           created_at?: string
-          email?: string | null
-          phone?: string | null
-          username?: string | null
-          core_realm?: 'MIRRORCORE' | 'EMBERCORE' | 'SHADOWCORE' | null
-          sub_realm?: string | null
-          xp?: number | null
-          level?: number | null
-          achievement_ids?: string[] | null  // Changed from achievements to achievement_ids
-          description?: string | null
-          follower_count?: number | null
-          following_count?: number | null
-          profile_privacy?: 'public' | 'private' | null
-          profile_image_url?: string | null  // Added profile_image_url column
+          updated_at?: string
         }
         Update: {
           id?: string
+          username?: string
+          display_name?: string | null
+          bio?: string | null
+          avatar_url?: string | null
+          xp?: number
+          level?: number
+          follower_count?: number
+          following_count?: number
+          post_count?: number
+          is_private?: boolean
           created_at?: string
-          email?: string | null
-          phone?: string | null
-          username?: string | null
-          core_realm?: 'MIRRORCORE' | 'EMBERCORE' | 'SHADOWCORE' | null
-          sub_realm?: string | null
-          xp?: number | null
-          level?: number | null
-          achievement_ids?: string[] | null  // Changed from achievements to achievement_ids
-          description?: string | null
-          follower_count?: number | null
-          following_count?: number | null
-          profile_privacy?: 'public' | 'private' | null
-          profile_image_url?: string | null  // Added profile_image_url column
+          updated_at?: string
         }
         Relationships: []
       }
@@ -67,54 +61,54 @@ export type Database = {
         Row: {
           id: string
           created_at: string
+          updated_at: string
           name: string
+          slug: string
           description: string | null
-          owner_id: string
-          is_private: boolean
-          post_count: number
-          member_count: number
+          creator_id: string
+          is_public: boolean
           category: string | null
-          tags: string[] | null
-          rules: string[] | null
+          icon_url: string | null
           banner_url: string | null
-          avatar_url: string | null
+          member_count: number
+          post_count: number
         }
         Insert: {
           id?: string
           created_at?: string
+          updated_at?: string
           name: string
+          slug: string
           description?: string | null
-          owner_id: string
-          is_private?: boolean
-          post_count?: number
-          member_count?: number
+          creator_id: string
+          is_public?: boolean
           category?: string | null
-          tags?: string[] | null
-          rules?: string[] | null
+          icon_url?: string | null
           banner_url?: string | null
-          avatar_url?: string | null
+          member_count?: number
+          post_count?: number
         }
         Update: {
           id?: string
           created_at?: string
+          updated_at?: string
           name?: string
+          slug?: string
           description?: string | null
-          owner_id?: string
-          is_private?: boolean
-          post_count?: number
-          member_count?: number
+          creator_id?: string
+          is_public?: boolean
           category?: string | null
-          tags?: string[] | null
-          rules?: string[] | null
+          icon_url?: string | null
           banner_url?: string | null
-          avatar_url?: string | null
+          member_count?: number
+          post_count?: number
         }
         Relationships: [
           {
-            foreignKeyName: "tribes_owner_id_fkey"
-            columns: ["owner_id"]
+            foreignKeyName: "tribes_creator_id_fkey"
+            columns: ["creator_id"]
             isOneToOne: false
-            referencedRelation: "users"
+            referencedRelation: "profile"
             referencedColumns: ["id"]
           }
         ]
@@ -123,6 +117,7 @@ export type Database = {
         Row: {
           id: string
           created_at: string
+          updated_at: string
           tribe_id: string
           user_id: string
           role: 'member' | 'moderator' | 'admin' | 'owner'
@@ -131,6 +126,7 @@ export type Database = {
         Insert: {
           id?: string
           created_at?: string
+          updated_at?: string
           tribe_id: string
           user_id: string
           role?: 'member' | 'moderator' | 'admin' | 'owner'
@@ -139,6 +135,7 @@ export type Database = {
         Update: {
           id?: string
           created_at?: string
+          updated_at?: string
           tribe_id?: string
           user_id?: string
           role?: 'member' | 'moderator' | 'admin' | 'owner'
@@ -156,43 +153,40 @@ export type Database = {
             foreignKeyName: "tribe_members_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
-            referencedRelation: "users"
+            referencedRelation: "profile"
             referencedColumns: ["id"]
           }
         ]
       }
-      user_relationships: {
+      follow: {
         Row: {
-          id: string
           follower_id: string
           followed_id: string
           created_at: string
         }
         Insert: {
-          id?: string
           follower_id: string
           followed_id: string
           created_at?: string
         }
         Update: {
-          id?: string
           follower_id?: string
           followed_id?: string
           created_at?: string
         }
         Relationships: [
           {
-            foreignKeyName: "user_relationships_follower_id_fkey"
+            foreignKeyName: "follow_follower_id_fkey"
             columns: ["follower_id"]
             isOneToOne: false
-            referencedRelation: "users"
+            referencedRelation: "profile"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "user_relationships_followed_id_fkey"
+            foreignKeyName: "follow_followed_id_fkey"
             columns: ["followed_id"]
             isOneToOne: false
-            referencedRelation: "users"
+            referencedRelation: "profile"
             referencedColumns: ["id"]
           }
         ]
@@ -208,11 +202,11 @@ export type Database = {
           caption: string | null
           media_url: string | null
           media_thumb_url: string | null
-          visibility: 'public' | 'tribe' | 'private'
+          visibility: string
           like_count: number
           comment_count: number
           share_count: number
-          reaction_count: number
+          thumbnail_url: string | null
         }
         Insert: {
           id?: string
@@ -224,11 +218,11 @@ export type Database = {
           caption?: string | null
           media_url?: string | null
           media_thumb_url?: string | null
-          visibility?: 'public' | 'tribe' | 'private'
+          visibility?: string
           like_count?: number
           comment_count?: number
           share_count?: number
-          reaction_count?: number
+          thumbnail_url?: string | null
         }
         Update: {
           id?: string
@@ -240,18 +234,18 @@ export type Database = {
           caption?: string | null
           media_url?: string | null
           media_thumb_url?: string | null
-          visibility?: 'public' | 'tribe' | 'private'
+          visibility?: string
           like_count?: number
           comment_count?: number
           share_count?: number
-          reaction_count?: number
+          thumbnail_url?: string | null
         }
         Relationships: [
           {
             foreignKeyName: "posts_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
-            referencedRelation: "users"
+            referencedRelation: "profile"
             referencedColumns: ["id"]
           },
           {
@@ -269,21 +263,21 @@ export type Database = {
           created_at: string
           post_id: string
           user_id: string
-          reaction_type: 'like' | 'love' | 'laugh' | 'wow' | 'sad' | 'angry'
+          reaction: string
         }
         Insert: {
           id?: string
           created_at?: string
           post_id: string
           user_id: string
-          reaction_type: 'like' | 'love' | 'laugh' | 'wow' | 'sad' | 'angry'
+          reaction: string
         }
         Update: {
           id?: string
           created_at?: string
           post_id?: string
           user_id?: string
-          reaction_type?: 'like' | 'love' | 'laugh' | 'wow' | 'sad' | 'angry'
+          reaction?: string
         }
         Relationships: [
           {
@@ -297,7 +291,7 @@ export type Database = {
             foreignKeyName: "post_reactions_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
-            referencedRelation: "users"
+            referencedRelation: "profile"
             referencedColumns: ["id"]
           }
         ]
@@ -308,30 +302,21 @@ export type Database = {
           created_at: string
           post_id: string
           user_id: string
-          parent_comment_id: string | null
-          content: string
-          like_count: number
-          reply_count: number
+          body: string
         }
         Insert: {
           id?: string
           created_at?: string
           post_id: string
           user_id: string
-          parent_comment_id?: string | null
-          content: string
-          like_count?: number
-          reply_count?: number
+          body: string
         }
         Update: {
           id?: string
           created_at?: string
           post_id?: string
           user_id?: string
-          parent_comment_id?: string | null
-          content?: string
-          like_count?: number
-          reply_count?: number
+          body?: string
         }
         Relationships: [
           {
@@ -345,188 +330,7 @@ export type Database = {
             foreignKeyName: "post_comments_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "post_comments_parent_comment_id_fkey"
-            columns: ["parent_comment_id"]
-            isOneToOne: false
-            referencedRelation: "post_comments"
-            referencedColumns: ["id"]
-          }
-        ]
-      }
-      comment_reactions: {
-        Row: {
-          id: string
-          created_at: string
-          comment_id: string
-          user_id: string
-          reaction_type: 'like' | 'love' | 'laugh' | 'wow' | 'sad' | 'angry'
-        }
-        Insert: {
-          id?: string
-          created_at?: string
-          comment_id: string
-          user_id: string
-          reaction_type: 'like' | 'love' | 'laugh' | 'wow' | 'sad' | 'angry'
-        }
-        Update: {
-          id?: string
-          created_at?: string
-          comment_id?: string
-          user_id?: string
-          reaction_type?: 'like' | 'love' | 'laugh' | 'wow' | 'sad' | 'angry'
-        }
-        Relationships: [
-          {
-            foreignKeyName: "comment_reactions_comment_id_fkey"
-            columns: ["comment_id"]
-            isOneToOne: false
-            referencedRelation: "post_comments"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "comment_reactions_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          }
-        ]
-      }
-      stories: {
-        Row: {
-          id: string
-          created_at: string
-          user_id: string
-          tribe_id: string | null
-          type: 'image' | 'video' | 'text'
-          content: string | null
-          media_url: string | null
-          visibility: 'public' | 'tribe' | 'private'
-          expires_at: string
-          view_count: number
-          reaction_count: number
-        }
-        Insert: {
-          id?: string
-          created_at?: string
-          user_id: string
-          tribe_id?: string | null
-          type: 'image' | 'video' | 'text'
-          content?: string | null
-          media_url?: string | null
-          visibility?: 'public' | 'tribe' | 'private'
-          expires_at: string
-          view_count?: number
-          reaction_count?: number
-        }
-        Update: {
-          id?: string
-          created_at?: string
-          user_id?: string
-          tribe_id?: string | null
-          type?: 'image' | 'video' | 'text'
-          content?: string | null
-          media_url?: string | null
-          visibility?: 'public' | 'tribe' | 'private'
-          expires_at?: string
-          view_count?: number
-          reaction_count?: number
-        }
-        Relationships: [
-          {
-            foreignKeyName: "stories_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "stories_tribe_id_fkey"
-            columns: ["tribe_id"]
-            isOneToOne: false
-            referencedRelation: "tribes"
-            referencedColumns: ["id"]
-          }
-        ]
-      }
-      story_views: {
-        Row: {
-          id: string
-          created_at: string
-          story_id: string
-          user_id: string
-          viewed_at: string
-        }
-        Insert: {
-          id?: string
-          created_at?: string
-          story_id: string
-          user_id: string
-          viewed_at?: string
-        }
-        Update: {
-          id?: string
-          created_at?: string
-          story_id?: string
-          user_id?: string
-          viewed_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "story_views_story_id_fkey"
-            columns: ["story_id"]
-            isOneToOne: false
-            referencedRelation: "stories"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "story_views_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          }
-        ]
-      }
-      story_reactions: {
-        Row: {
-          id: string
-          created_at: string
-          story_id: string
-          user_id: string
-          reaction_type: 'like' | 'love' | 'laugh' | 'wow' | 'sad' | 'angry'
-        }
-        Insert: {
-          id?: string
-          created_at?: string
-          story_id: string
-          user_id: string
-          reaction_type: 'like' | 'love' | 'laugh' | 'wow' | 'sad' | 'angry'
-        }
-        Update: {
-          id?: string
-          created_at?: string
-          story_id?: string
-          user_id?: string
-          reaction_type?: 'like' | 'love' | 'laugh' | 'wow' | 'sad' | 'angry'
-        }
-        Relationships: [
-          {
-            foreignKeyName: "story_reactions_story_id_fkey"
-            columns: ["story_id"]
-            isOneToOne: false
-            referencedRelation: "stories"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "story_reactions_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
+            referencedRelation: "profile"
             referencedColumns: ["id"]
           }
         ]
@@ -555,7 +359,7 @@ export type Database = {
             foreignKeyName: "post_bookmarks_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
-            referencedRelation: "users"
+            referencedRelation: "profile"
             referencedColumns: ["id"]
           },
           {
@@ -567,21 +371,157 @@ export type Database = {
           }
         ]
       }
+      notification: {
+        Row: {
+          id: string
+          user_id: string
+          type: string
+          title: string
+          body: string | null
+          actor_id: string | null
+          target_type: string | null
+          target_id: string | null
+          is_read: boolean
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          type: string
+          title?: string
+          body?: string | null
+          actor_id?: string | null
+          target_type?: string | null
+          target_id?: string | null
+          is_read?: boolean
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          type?: string
+          title?: string
+          body?: string | null
+          actor_id?: string | null
+          target_type?: string | null
+          target_id?: string | null
+          is_read?: boolean
+          created_at?: string
+        }
+        Relationships: []
+      }
+      points_ledger: {
+        Row: {
+          id: string
+          user_id: string
+          action: string
+          points: number
+          reference_type: string | null
+          reference_id: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          action: string
+          points: number
+          reference_type?: string | null
+          reference_id?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          action?: string
+          points?: number
+          reference_type?: string | null
+          reference_id?: string | null
+          created_at?: string
+        }
+        Relationships: []
+      }
+      report: {
+        Row: {
+          id: string
+          reporter_id: string
+          target_type: string
+          target_id: string
+          reason: string
+          status: string
+          reviewed_at: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          reporter_id: string
+          target_type: string
+          target_id: string
+          reason: string
+          status?: string
+          reviewed_at?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          reporter_id?: string
+          target_type?: string
+          target_id?: string
+          reason?: string
+          status?: string
+          reviewed_at?: string | null
+          created_at?: string
+        }
+        Relationships: []
+      }
+      user_block: {
+        Row: {
+          blocker_id: string
+          blocked_id: string
+          created_at: string
+        }
+        Insert: {
+          blocker_id: string
+          blocked_id: string
+          created_at?: string
+        }
+        Update: {
+          blocker_id?: string
+          blocked_id?: string
+          created_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      is_tribe_member: {
+        Args: { p_tribe_id: string }
+        Returns: boolean
+      }
+      has_tribe_role: {
+        Args: { p_tribe_id: string; p_roles: string[] }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      post_type_enum: 'thought' | 'image' | 'video' | 'audio'
+      visibility_enum: 'public' | 'tribe'
+      tribe_role_enum: 'owner' | 'admin' | 'moderator' | 'member'
+      report_status_enum: 'pending' | 'reviewed' | 'actioned' | 'dismissed'
+      report_target_enum: 'post' | 'comment' | 'user' | 'tribe'
+      point_action_enum: 'post_created' | 'comment_added' | 'reaction_received' | 'follow_received' | 'tribe_joined' | 'achievement_unlocked' | 'daily_login'
     }
     CompositeTypes: {
       [_ in never]: never
     }
   }
 }
+
+// ============================================================
+// Helper type utilities (from Supabase)
+// ============================================================
 
 export type Tables<
   PublicTableNameOrOptions extends
@@ -663,171 +603,69 @@ export type Enums<
     ? Database["public"]["Enums"][PublicEnumNameOrOptions]
     : never
 
-// Helper types for the follow system
-export type UserRelationship = Tables<'user_relationships'>
-export type UserWithCounts = Tables<'users'> & {
-  follower_count: number
-  following_count: number
-}
+// ============================================================
+// Convenience type aliases
+// ============================================================
 
-// Public profile type for user information
-export type PublicProfile = {
-  id: string;
-  username: string | null;
-  profile_image_url: string | null;
-  description: string | null;
-  created_at: string;
-}
-
-// Extended user type for profiles with follow status
-export type UserProfile = UserWithCounts & {
-  isFollowing?: boolean
-  isFollowedBy?: boolean
-}
-
-// New helper types for the updated schema
+export type Profile = Tables<'profile'>
 export type Tribe = Tables<'tribes'>
 export type TribeMember = Tables<'tribe_members'>
+export type Follow = Tables<'follow'>
 export type Post = Tables<'posts'>
 export type PostReaction = Tables<'post_reactions'>
 export type PostComment = Tables<'post_comments'>
-export type CommentReaction = Tables<'comment_reactions'>
-export type Story = Tables<'stories'>
-export type StoryView = Tables<'story_views'>
-export type StoryReaction = Tables<'story_reactions'>
 export type PostBookmark = Tables<'post_bookmarks'>
+export type Notification = Tables<'notification'>
+export type PointsLedger = Tables<'points_ledger'>
+export type Report = Tables<'report'>
+export type UserBlock = Tables<'user_block'>
 
-// Extended types with additional computed fields
+// Extended types with computed fields
 export type PostWithDetails = Post & {
   user: {
     id: string
     username: string | null
-    nickname: string | null
-    core_realm: 'MIRRORCORE' | 'EMBERCORE' | 'SHADOWCORE' | null
+    display_name: string | null
+    avatar_url: string | null
   }
   tribe?: {
     id: string
     name: string
-    is_private: boolean
+    is_public: boolean
   }
-  user_reaction?: PostReaction | null
   is_owned_by_user?: boolean
-  can_edit?: boolean
-  can_delete?: boolean
 }
 
-export type CommentWithDetails = PostComment & {
-  user: {
-    id: string
-    username: string | null
-    nickname: string | null
-    core_realm: 'MIRRORCORE' | 'EMBERCORE' | 'SHADOWCORE' | null
-  }
-  user_reaction?: CommentReaction | null
-  replies?: CommentWithDetails[]
-  is_owned_by_user?: boolean
-  can_edit?: boolean
-  can_delete?: boolean
+export type ProfileWithFollowStatus = Profile & {
+  isFollowing?: boolean
+  isFollowedBy?: boolean
 }
 
 export type TribeWithDetails = Tribe & {
-  owner: {
+  creator: {
     id: string
     username: string | null
-    nickname: string | null
+    display_name: string | null
   }
   user_membership?: TribeMember | null
   is_member?: boolean
-  can_post?: boolean
-  can_moderate?: boolean
 }
 
-export type StoryWithDetails = Story & {
-  user: {
-    id: string
-    username: string | null
-    nickname: string | null
-    core_realm: 'MIRRORCORE' | 'EMBERCORE' | 'SHADOWCORE' | null
-  }
-  tribe?: {
-    id: string
-    name: string
-    is_private: boolean
-  }
-  user_viewed?: boolean
-  user_reaction?: StoryReaction | null
-  is_owned_by_user?: boolean
-  can_view?: boolean
-}
+// ============================================================
+// Enums and constants
+// ============================================================
 
-// Media dimension types
-export interface MediaDimensions {
-  width: number
-  height: number
-  aspectRatio?: string
-  orientation?: 'portrait' | 'landscape' | 'square'
-}
-
-// Visibility and access control types
-export type Visibility = 'public' | 'tribe' | 'private'
-export type ReactionType = 'like' | 'love' | 'laugh' | 'wow' | 'sad' | 'angry'
-export type TribeRole = 'member' | 'moderator' | 'admin' | 'owner'
+export type Visibility = 'public' | 'tribe'
 export type PostType = 'thought' | 'image' | 'video' | 'audio'
-export type StoryType = 'image' | 'video' | 'text'
+export type TribeRole = 'member' | 'moderator' | 'admin' | 'owner'
 
-// File size and validation constants
-export const MAX_FILE_SIZE = 5 * 1024 * 1024 // 5MB in bytes
+export const MAX_FILE_SIZE = 50 * 1024 * 1024 // 50MB for video/audio
+export const MAX_IMAGE_SIZE = 5 * 1024 * 1024 // 5MB for images
+export const MAX_AVATAR_SIZE = 5 * 1024 * 1024 // 5MB for avatars
 export const SUPPORTED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
 export const SUPPORTED_VIDEO_TYPES = ['video/mp4', 'video/webm', 'video/quicktime']
 export const SUPPORTED_AUDIO_TYPES = ['audio/mp3', 'audio/wav', 'audio/m4a', 'audio/ogg']
-export const TEXT_CONTENT_LIMIT = 250 // characters
-
-// Access control helper functions (RLS-aware)
-export interface AccessControlContext {
-  currentUserId?: string
-  userTribeRoles?: Record<string, TribeRole>
-  isAuthenticated: boolean
-}
-
-export function canViewPost(post: PostWithDetails, context: AccessControlContext): boolean {
-  // Public posts are always viewable
-  if (post.visibility === 'public') return true
-  
-  // Private posts only viewable by owner
-  if (post.visibility === 'private') {
-    return context.currentUserId === post.user_id
-  }
-  
-  // Tribe posts viewable by tribe members (if tribe exists and is joined)
-  if (post.visibility === 'tribe' && post.tribe_id) {
-    return context.userTribeRoles?.[post.tribe_id] !== undefined
-  }
-  
-  return false
-}
-
-export function canEditPost(post: PostWithDetails, context: AccessControlContext): boolean {
-  return context.currentUserId === post.user_id
-}
-
-export function canDeletePost(post: PostWithDetails, context: AccessControlContext): boolean {
-  // Post owner can always delete
-  if (context.currentUserId === post.user_id) return true
-  
-  // Tribe moderators/admins/owners can delete posts in their tribe
-  if (post.tribe_id && context.userTribeRoles?.[post.tribe_id]) {
-    const role = context.userTribeRoles[post.tribe_id]
-    return ['moderator', 'admin', 'owner'].includes(role)
-  }
-  
-  return false
-}
-
-export function canReactToContent(context: AccessControlContext): boolean {
-  return context.isAuthenticated
-}
-
-export function canCommentOnPost(post: PostWithDetails, context: AccessControlContext): boolean {
-  // Must be able to view the post and be authenticated
-  return canViewPost(post, context) && context.isAuthenticated
-}
+export const TEXT_CONTENT_LIMIT = 500 // characters
+export const BIO_LIMIT = 280 // characters
+export const USERNAME_MIN = 3
+export const USERNAME_MAX = 24

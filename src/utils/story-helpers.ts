@@ -162,8 +162,8 @@ export async function createStory(request: CreateStoryRequest): Promise<StoryCre
       // Fetch user data
       try {
         const { data: user, error: userError } = await supabase
-          .from('users')
-          .select('id, username, nickname')
+          .from('profile')
+          .select('id, username, display_name')
           .eq('id', session.user.id)
           .single();
         
@@ -412,7 +412,7 @@ export async function getActiveStoryGroups(): Promise<StoryGroup[]> {
       let users: any[] = [];
       try {
         const { data: userData, error: userError } = await supabase
-          .from('users')
+          .from('profile')
           .select('id, username, nickname, avatar_url')
           .in('id', userIds);
         
@@ -807,8 +807,8 @@ export async function getStoryViews(storyId: string): Promise<StoryView[]> {
     // Get user data separately
     const userIds = [...new Set(views.map(v => v.user_id))];
     const { data: users, error: userError } = await supabase
-      .from('users')
-      .select('id, username, nickname')
+      .from('profile')
+      .select('id, username, display_name')
       .in('id', userIds);
     
     if (userError) {
@@ -859,8 +859,8 @@ export async function getStoryReactions(storyId: string): Promise<StoryReaction[
     // Get user data separately
     const userIds = [...new Set(reactions.map(r => r.user_id))];
     const { data: users, error: userError } = await supabase
-      .from('users')
-      .select('id, username, nickname')
+      .from('profile')
+      .select('id, username, display_name')
       .in('id', userIds);
     
     if (userError) {

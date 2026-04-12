@@ -28,7 +28,7 @@ export interface UserInfo {
   selectedTheme?: string;
   description?: string;
   updatedAt?: string | null;
-  // NOTE: Avatar is now handled exclusively by Supabase profiles.avatar_url + avatar_version
+  // NOTE: Avatar is now handled exclusively by Supabase profiles.avatar_url + 
   // Removed: profileImageUrl - use database-first avatar system instead
 }
 

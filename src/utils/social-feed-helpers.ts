@@ -133,11 +133,11 @@ export function transformBackendPost(backendPost: any): FeedPost {
 
     return {
       id: backendPost.id,
-      username: backendPost.username || backendPost.users?.username || 'unknown_user',
-      name: backendPost.name || backendPost.username || backendPost.users?.username || 'Unknown User',
+      username: backendPost.username || backendPost.profile?.username || 'unknown_user',
+      name: backendPost.name || backendPost.username || backendPost.profile?.username || 'Unknown User',
       nickname: backendPost.nickname || 'Tribe Member',
-      avatar: backendPost.avatar || backendPost.users?.profile_image_url || backendPost.profile_image_url || null,
-      coreRealm: backendPost.coreRealm || backendPost.core_realm || backendPost.users?.core_realm?.toLowerCase() || 'general',
+      avatar: backendPost.avatar || backendPost.profile?.avatar_url || backendPost.avatar_url || null,
+      coreRealm: backendPost.coreRealm || backendPost.core_realm || backendPost.profile?.core_realm?.toLowerCase() || 'general',
       type: postType,
       content: postType === 'thought' ? displayText : (backendPost.text_body || backendPost.content || null),
       caption: displayText,
@@ -153,7 +153,7 @@ export function transformBackendPost(backendPost: any): FeedPost {
       userId: backendPost.userId || backendPost.user_id,
       user_id: backendPost.userId || backendPost.user_id, // Add user_id for compatibility
       authorId: backendPost.userId || backendPost.user_id, // Add authorId for navigation
-      authorName: backendPost.username || backendPost.users?.username || 'unknown_user', // Add authorName for navigation
+      authorName: backendPost.username || backendPost.profile?.username || 'unknown_user', // Add authorName for navigation
       isFollowing: backendPost.isFollowing || backendPost.is_following || false,
       isFollowedBy: backendPost.isFollowedBy || backendPost.is_followed_by || false,
       tribeId: backendPost.tribeId || backendPost.tribe_id || null,
@@ -245,10 +245,10 @@ export async function fetchPostsWithPermissionHandling(supabase: any, realm?: st
         like_count,
         comment_count,
         created_at,
-        author:users!posts_user_id_fkey (
+        author:profile!posts_user_id_fkey (
           id,
           username,
-          profile_image_url,
+          avatar_url,
           core_realm
         )
       `)
@@ -305,7 +305,7 @@ export async function fetchPostsWithPermissionHandling(supabase: any, realm?: st
           username: post.author?.username || 'unknown_user',
           name: post.author?.username || 'Unknown User',
           nickname: post.author?.username || 'Tribe Member',
-          avatar: post.author?.profile_image_url || null,
+          avatar: post.author?.avatar_url || null,
           coreRealm: post.author?.core_realm?.toLowerCase() || 'general',
           type: post.post_type === 'thought' ? 'thought' : 
                 post.post_type === 'image' ? 'media' : 
@@ -554,9 +554,7 @@ export function transformDatabaseFallbackPost(post: any, postUser: any, savedSet
     username: postUser?.display_name || postUser?.username || 'unknown_user',
     nickname: postUser?.display_name || postUser?.username || 'Unknown User',
     // Handle avatar with version cachebuster if available
-    avatar: postUser?.avatar_url ? 
-      `${postUser.avatar_url}?v=${postUser.avatar_version || 0}` : 
-      (postUser?.profile_image_url || null),
+    avatar: postUser?.avatar_url || null,
     coreRealm: 'general', // FIXED: Added missing coreRealm field
     // FIXED: Add authorId for navigation - this is the key fix for username clicks
     // Only set authorId if we have a valid UUID

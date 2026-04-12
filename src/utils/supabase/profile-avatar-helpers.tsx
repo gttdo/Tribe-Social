@@ -3,13 +3,12 @@ import { STORAGE_BUCKETS } from '../storage-constants';
 
 /**
  * Database-first avatar fetching helper
- * Always fetches the latest avatar from profiles.avatar_url + avatar_version
+ * Always fetches the latest avatar from profile.avatar_url
  * Use this helper consistently across the app for post headers, user cards, etc.
  */
 
 export interface ProfileAvatarData {
   avatar_url?: string;
-  avatar_version?: number;
   display_name?: string;
 }
 
@@ -30,8 +29,8 @@ export async function fetchUserAvatar(userId: string): Promise<AvatarResult> {
     console.log('🔄 Fetching avatar for user:', userId.substring(0, 8) + '...');
 
     const { data, error } = await supabase
-      .from('profiles')
-      .select('avatar_url, avatar_version, display_name')
+      .from('profile')
+      .select('avatar_url, display_name')
       .eq('id', userId)
       .maybeSingle();
 
@@ -50,7 +49,7 @@ export async function fetchUserAvatar(userId: string): Promise<AvatarResult> {
     if (src) {
       if (src.startsWith('http')) {
         // Absolute URL - add version parameter
-        src = `${src}?v=${data.avatar_version ?? 0}`;
+        src = `${src}?v=${Date.now()}`;
       } else {
         // Stored as path in the 'avatars' bucket
         const { data: pub } = supabase.storage
@@ -58,7 +57,7 @@ export async function fetchUserAvatar(userId: string): Promise<AvatarResult> {
           .getPublicUrl(src, { 
             transform: { width: 256, height: 256, resize: 'cover' } 
           });
-        src = `${pub.publicUrl}?v=${data.avatar_version ?? 0}`;
+        src = `${pub.publicUrl}?v=${Date.now()}`;
       }
     }
 
@@ -103,8 +102,8 @@ export async function fetchMultipleUserAvatars(userIds: string[]): Promise<Map<s
     console.log('🔄 Batch fetching avatars for', userIds.length, 'users');
 
     const { data, error } = await supabase
-      .from('profiles')
-      .select('id, avatar_url, avatar_version, display_name')
+      .from('profile')
+      .select('id, avatar_url, display_name')
       .in('id', userIds);
 
     if (error) {
@@ -139,14 +138,14 @@ export async function fetchMultipleUserAvatars(userIds: string[]): Promise<Map<s
       let src = userData.avatar_url ?? '';
       if (src) {
         if (src.startsWith('http')) {
-          src = `${src}?v=${userData.avatar_version ?? 0}`;
+          src = `${src}?v=${Date.now()}`;
         } else {
           const { data: pub } = supabase.storage
             .from(STORAGE_BUCKETS.AVATARS)
             .getPublicUrl(src, { 
               transform: { width: 256, height: 256, resize: 'cover' } 
             });
-          src = `${pub.publicUrl}?v=${userData.avatar_version ?? 0}`;
+          src = `${pub.publicUrl}?v=${Date.now()}`;
         }
       }
 

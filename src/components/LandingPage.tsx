@@ -147,11 +147,6 @@ export function LandingPage({ onStartSignup, onSignIn }: LandingPageProps) {
                     New to Tribe? Start your journey • Already exploring? Sign in
                   </p>
                   
-                  <div className="p-3 sm:p-2 rounded-lg bg-electric-blue/10 border border-electric-blue/30 max-w-sm mx-auto">
-                    <p className="text-xs sm:text-xs text-electric-blue font-body">
-                      💡 This app uses real authentication - sign up to create your account
-                    </p>
-                  </div>
 
                   {/* Quick actions */}
                   <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4">
@@ -182,20 +177,14 @@ export function LandingPage({ onStartSignup, onSignIn }: LandingPageProps) {
               <div className="max-w-4xl mx-auto text-center">
                 <div className="flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-4 text-xs text-muted-lavender/50">
                   <div className="flex items-center gap-3 sm:gap-4">
-                    <a href="#" className="hover:text-electric-blue transition-colors duration-300">Privacy</a>
+                    <button onClick={() => {}} className="hover:text-electric-blue transition-colors duration-300">Privacy</button>
                     <div className="w-1 h-1 bg-muted-lavender/30 rounded-full" />
-                    <a href="#" className="hover:text-electric-blue transition-colors duration-300">Terms</a>
-                    <div className="w-1 h-1 bg-muted-lavender/30 rounded-full" />
-                    <a href="#" className="hover:text-electric-blue transition-colors duration-300">Credits</a>
+                    <button onClick={() => {}} className="hover:text-electric-blue transition-colors duration-300">Terms</button>
                   </div>
-                  
+
                   <div className="flex items-center gap-2 text-xs text-muted-lavender/40">
-                    <span className="bg-gradient-to-r from-neon-lilac/60 to-electric-blue/60 bg-clip-text text-transparent font-accent">
-                      v{APP_VERSION}
-                    </span>
-                    <span className="text-muted-lavender/20">•</span>
                     <span className="italic">
-                      {new Date().getFullYear()} Digital Realms
+                      {new Date().getFullYear()} Tribe Social
                     </span>
                   </div>
                 </div>

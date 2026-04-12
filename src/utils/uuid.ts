@@ -70,7 +70,7 @@ export async function loadProfilePosts({
     try {
       const { supabase } = await import('./supabase/client');
       const { data } = await supabase
-        .from('users')
+        .from('profile')
         .select('id')
         .eq('username', username)
         .maybeSingle();

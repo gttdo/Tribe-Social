@@ -3,7 +3,8 @@ import { Button } from './ui/button';
 import { Textarea } from './ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from './ui/dialog';
 import { Loader2, Save, X } from 'lucide-react';
-import { toast } from 'sonner@2.0.3';
+import { toast } from 'sonner';
+import { POST_TEXT_LIMIT, POST_CAPTION_LIMIT } from './post/post-constants';
 
 interface PostDetails {
   id: string;
@@ -33,7 +34,8 @@ export function EditPostModal({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [charCount, setCharCount] = useState(0);
   
-  const maxCharacters = 2000;
+  const isThought = post?.type === 'thought' || post?.post_type === 'thought';
+  const maxCharacters = isThought ? POST_TEXT_LIMIT : POST_CAPTION_LIMIT;
 
   // Initialize text content when post changes
   useEffect(() => {

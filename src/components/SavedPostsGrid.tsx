@@ -245,7 +245,7 @@ export function SavedPostsGrid({
       try {
         // Use basic post_bookmarks with posts join to avoid view dependencies
         const { data: bookmarkData, error: bookmarkError } = await supabase
-          .from('post_bookmarks')
+          .from('bookmark')
           .select(`
             created_at,
             posts (
@@ -308,8 +308,8 @@ export function SavedPostsGrid({
         
         // Check if this is a missing table error
         const errorMessage = directQueryError?.message || '';
-        if (errorMessage.includes('relation "post_bookmarks" does not exist') ||
-            errorMessage.includes('table "post_bookmarks" does not exist')) {
+        if (errorMessage.includes('relation "bookmark" does not exist') ||
+            errorMessage.includes('table "bookmark" does not exist')) {
           console.log('SavedPostsGrid: Bookmark table not set up yet');
           
           if (append) {

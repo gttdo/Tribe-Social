@@ -6,8 +6,8 @@ import { LoadingScreen } from './components/LoadingScreen';
 import { AppErrorBoundary } from './components/GlobalErrorBoundary';
 
 
-import { SignupFlow } from './components/SignupFlow';
-import { LoginFlow } from './components/LoginFlow';
+import { AuthScreen } from './components/auth/AuthScreen';
+import { UsernameSetup } from './components/auth/UsernameSetup';
 import { SocialFeed } from './components/SocialFeed';
 import { URLRouter } from './components/URLRouter';
 import { toast, Toaster } from 'sonner@2.0.3';
@@ -26,7 +26,7 @@ import { initializeVideoErrorSuppression } from './utils/video-error-suppression
 import { initializeStorage } from './utils/storage-setup';
 // Debug imports removed for production
 
-type AppView = 'loading' | 'landing' | 'signup' | 'login' | 'social' | 'url-router';
+type AppView = 'loading' | 'landing' | 'auth' | 'username-setup' | 'social' | 'url-router';
 
 interface AppState {
   view: AppView;
@@ -46,6 +46,8 @@ export default function App() {
     session: undefined,
     isInitialized: false
   });
+
+  const [authDefaultTab, setAuthDefaultTab] = useState<'login' | 'signup'>('signup');
 
   // Bookmark system variables (app-level scope)
   const [viewerId, setViewerId] = useState<string | null>(null);
@@ -103,7 +105,7 @@ export default function App() {
       else {
         try {
           const { data: profile, error } = await supabase
-            .from('profiles')
+            .from('profile')
             .select('display_name')
             .eq('id', userId)
             .single();
@@ -184,7 +186,7 @@ export default function App() {
       }
 
       const { data: rows, error } = await supabase
-        .from("post_bookmarks")
+        .from("bookmark")
         .select("post_id")
         .eq("user_id", userId);
 
@@ -238,7 +240,7 @@ export default function App() {
         // Remove bookmark
         console.log('🔖 Removing bookmark from database...');
         const { error } = await supabase
-          .from("post_bookmarks")
+          .from("bookmark")
           .delete()
           .match({ user_id: uid, post_id: postId });
         if (error) {
@@ -254,7 +256,7 @@ export default function App() {
         // Add bookmark
         console.log('🔖 Adding bookmark to database...');
         const { error } = await supabase
-          .from("post_bookmarks")
+          .from("bookmark")
           .insert({ user_id: uid, post_id: postId });
         if (error && error.code !== "23505") {
           console.error('🔖 Failed to add bookmark:', error);
@@ -836,9 +838,10 @@ export default function App() {
 
         const handleAuthRequired = () => {
           console.log('🔒 Authentication required');
+          setAuthDefaultTab('login');
           setAppState(prev => ({
             ...prev,
-            view: 'login'
+            view: 'auth'
           }));
           toast.info('Please sign in to continue');
         };
@@ -862,35 +865,13 @@ export default function App() {
 
   // View transition handlers
   const handleStartSignup = () => {
-    setAppState(prev => ({ ...prev, view: 'signup' }));
+    setAuthDefaultTab('signup');
+    setAppState(prev => ({ ...prev, view: 'auth' }));
   };
 
   const handleShowSignIn = () => {
-    setAppState(prev => ({ ...prev, view: 'login' }));
-  };
-
-  const handleSignupComplete = (userInfo: UserInfo) => {
-    setAppState(prev => ({ 
-      ...prev, 
-      view: 'social',
-      userInfo,
-      userResult: null // Clear any previous user result since we no longer use quiz
-    }));
-    saveToStorage(STORAGE_KEYS.USER_INFO, userInfo);
-    saveToStorage(STORAGE_KEYS.CURRENT_VIEW, 'social');
-    // Clear user result from storage since we don't use quiz anymore
-    localStorage.removeItem(STORAGE_KEYS.USER_RESULT);
-    toast.success('Welcome to Tribe Board! 🎉');
-  };
-
-  const handleLoginComplete = (userInfo: UserInfo) => {
-    setAppState(prev => ({ 
-      ...prev, 
-      view: 'social',
-      userInfo 
-    }));
-    saveToStorage(STORAGE_KEYS.USER_INFO, userInfo);
-    saveToStorage(STORAGE_KEYS.CURRENT_VIEW, 'social');
+    setAuthDefaultTab('login');
+    setAppState(prev => ({ ...prev, view: 'auth' }));
   };
 
   // NOTE: Global avatar updates are now handled by the database-first avatar system
@@ -904,7 +885,7 @@ export default function App() {
     
     if (currentView === 'url-router') {
       setAppState(prev => ({ ...prev, view: 'social' }));
-    } else if (currentView === 'signup' || currentView === 'login') {
+    } else if (currentView === 'auth' || currentView === 'username-setup') {
       setAppState(prev => ({ ...prev, view: 'landing' }));
     } else {
       setAppState(prev => ({ ...prev, view: 'landing' }));
@@ -984,19 +965,46 @@ export default function App() {
           />
         );
         
-      case 'signup':
+      case 'auth':
         return (
-          <SignupFlow 
-            onComplete={handleSignupComplete}
-            onBack={handleBack}
+          <AuthScreen
+            defaultTab={authDefaultTab}
+            onAuthComplete={() => {
+              const checkUsername = async () => {
+                try {
+                  const { data: { session } } = await supabase.auth.getSession();
+                  if (session?.user?.id) {
+                    const { data: profile } = await supabase
+                      .from('profile')
+                      .select('username')
+                      .eq('id', session.user.id)
+                      .single();
+
+                    if (profile?.username?.startsWith('user_')) {
+                      setAppState(prev => ({ ...prev, view: 'username-setup', session }));
+                    } else {
+                      toast.success('Welcome to Tribe!');
+                      setAppState(prev => ({ ...prev, view: 'social', session }));
+                    }
+                  }
+                } catch {
+                  setAppState(prev => ({ ...prev, view: 'social' }));
+                }
+              };
+              checkUsername();
+            }}
+            onBack={() => setAppState(prev => ({ ...prev, view: 'landing' }))}
           />
         );
-        
-      case 'login':
+
+      case 'username-setup':
         return (
-          <LoginFlow 
-            onComplete={handleLoginComplete}
-            onBack={handleBack}
+          <UsernameSetup
+            userId={appState.session?.user?.id || ''}
+            onComplete={() => {
+              toast.success('Welcome to Tribe!');
+              setAppState(prev => ({ ...prev, view: 'social' }));
+            }}
           />
         );
         

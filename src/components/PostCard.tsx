@@ -193,7 +193,7 @@ export function PostCard({
                   
                   // Fetch user ID by display_name
                   const { data: profile, error } = await supabase
-                    .from('profiles')
+                    .from('profile')
                     .select('id')
                     .eq('display_name', username)
                     .single();
@@ -613,25 +613,33 @@ export function PostCard({
               <button
                 onClick={() => onToggleLike(post.id)}
                 className={`p-2 sm:p-3 bg-transparent border-0 rounded-lg ${post.liked ? 'text-glitch-red' : 'text-muted-lavender hover:text-glitch-red'} transition-all duration-300 cursor-pointer touch-target`}
+                aria-label={post.liked ? 'Unlike' : 'Like'}
+                aria-pressed={post.liked}
               >
-                <Heart className={`w-5 h-5 sm:w-6 sm:h-6 ${post.liked ? 'fill-current' : ''}`} />
+                <Heart className={`w-5 h-5 sm:w-6 sm:h-6 transition-transform duration-200 ${post.liked ? 'fill-current scale-110' : 'scale-100'} active:scale-125`} />
               </button>
               <button
                 onClick={() => onOpenComments(post)}
-                data-post-id={post.id}  // Embed real UUID for comments
+                data-post-id={post.id}
                 className="p-2 sm:p-3 bg-transparent border-0 rounded-lg text-muted-lavender hover:text-electric-blue transition-all duration-300 cursor-pointer touch-target"
+                aria-label="Comment"
               >
                 <MessageCircle className="w-5 h-5 sm:w-6 sm:h-6" />
               </button>
-              <button className="p-2 sm:p-3 bg-transparent border-0 rounded-lg text-muted-lavender hover:text-electric-blue transition-all duration-300 cursor-pointer touch-target">
+              <button
+                className="p-2 sm:p-3 bg-transparent border-0 rounded-lg text-muted-lavender hover:text-electric-blue transition-all duration-300 cursor-pointer touch-target"
+                aria-label="Share"
+              >
                 <Share className="w-5 h-5 sm:w-6 sm:h-6" />
               </button>
             </div>
             <button
               onClick={() => onToggleBookmark(post.id)}
               className={`p-2 sm:p-3 bg-transparent border-0 rounded-lg ${post.bookmarked ? 'text-electric-blue' : 'text-muted-lavender hover:text-electric-blue'} transition-all duration-300 cursor-pointer touch-target flex-shrink-0`}
+              aria-label={post.bookmarked ? 'Unsave' : 'Save'}
+              aria-pressed={post.bookmarked}
             >
-              <Bookmark className={`w-5 h-5 sm:w-6 sm:h-6 ${post.bookmarked ? 'fill-current' : ''}`} />
+              <Bookmark className={`w-5 h-5 sm:w-6 sm:h-6 transition-transform duration-200 ${post.bookmarked ? 'fill-current scale-110' : 'scale-100'} active:scale-125`} />
             </button>
           </div>
         )}

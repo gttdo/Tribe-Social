@@ -48,10 +48,10 @@ export function UserProfile({ userId, onBack }: UserProfileProps) {
       const { data: { session } } = await supabase.auth.getSession();
 
       // Fetch profile by id (not session): query public.profiles where id = route.userId
-      // selecting id, display_name, avatar_url, avatar_version, bio, xp
+      // selecting id, display_name, avatar_url, bio, xp
       const { data: profileData, error: profileError } = await supabase
-        .from("profiles")
-        .select("id, display_name, avatar_url, avatar_version, bio, xp")
+        .from("profile")
+        .select("id, display_name, avatar_url, bio, xp")
         .eq("id", profileId)
         .single();
 
@@ -87,9 +87,9 @@ export function UserProfile({ userId, onBack }: UserProfileProps) {
           .order("created_at", { ascending: false })
           .limit(12),
 
-        // Get follower/following counts from users table
+        // Get follower/following counts from profile table
         supabase
-          .from("users")
+          .from("profile")
           .select("follower_count, following_count")
           .eq("id", profileId)
           .single()
@@ -131,11 +131,11 @@ export function UserProfile({ userId, onBack }: UserProfileProps) {
     Load();
   }, [userId]);
 
-  // Get avatar URL with cachebuster ?v=${avatar_version}
+  // Get avatar URL with cachebuster ?v=${}
   const getAvatarUrl = () => {
     if (!user?.avatar_url) return null;
-    // Avatar → avatar_url with cachebuster ?v=${avatar_version}
-    return user.avatar_url + '?v=' + (user.avatar_version ?? 0);
+    // Avatar → avatar_url with cachebuster ?v=${}
+    return user.avatar_url;
   };
 
   if (loading) {

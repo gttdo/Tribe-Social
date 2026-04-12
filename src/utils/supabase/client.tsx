@@ -897,8 +897,8 @@ interface FrontendUser {
   // Removed achievement_ids since the column doesn't exist in the database
   createdAt: string;
   updatedAt: string;
-  nickname?: string;
-  description?: string;
+  display_name?: string;
+  bio?: string;
   badges?: string[];
   profile?: any;
 }
@@ -927,7 +927,7 @@ export async function checkProfileCompletion() {
     
     const hasBasicInfo = !!(profile.username && profile.username !== 'unknown_user');
     const hasQuizData = !!(profile.coreRealm);
-    const hasProfileSetup = !!(profile.profile || (profile.coreRealm && profile.nickname));
+    const hasProfileSetup = !!(profile.profile || (profile.coreRealm && profile.display_name));
     
     const result = {
       hasBasicInfo,
@@ -1016,8 +1016,8 @@ export async function followUser(followedUserId: string): Promise<{ success: boo
 
     // Check if already following
     const { data: existingFollow } = await supabase
-      .from('user_relationships')
-      .select('id')
+      .from('follow')
+      .select('follower_id')
       .eq('follower_id', user.id)
       .eq('followed_id', followedUserId)
       .maybeSingle();
@@ -1028,7 +1028,7 @@ export async function followUser(followedUserId: string): Promise<{ success: boo
 
     // Create follow relationship
     const { error } = await supabase
-      .from('user_relationships')
+      .from('follow')
       .insert({
         follower_id: user.id,
         followed_id: followedUserId
@@ -1062,7 +1062,7 @@ export async function unfollowUser(followedUserId: string): Promise<{ success: b
 
     // Delete follow relationship
     const { error } = await supabase
-      .from('user_relationships')
+      .from('follow')
       .delete()
       .eq('follower_id', user.id)
       .eq('followed_id', followedUserId);
@@ -1090,8 +1090,8 @@ export async function isFollowing(userId: string): Promise<boolean> {
     if (!user) return false;
 
     const { data } = await supabase
-      .from('user_relationships')
-      .select('id')
+      .from('follow')
+      .select('follower_id')
       .eq('follower_id', user.id)
       .eq('followed_id', userId)
       .single();
@@ -1107,7 +1107,7 @@ export async function isFollowing(userId: string): Promise<boolean> {
 export async function getUserFollowCounts(userId: string): Promise<{ followers: number; following: number }> {
   try {
     const { data: user } = await supabase
-      .from('users')
+      .from('profile')
       .select('follower_count, following_count')
       .eq('id', userId)
       .single();
@@ -1126,13 +1126,13 @@ export async function getUserFollowCounts(userId: string): Promise<{ followers: 
 export async function getFollowing(userId: string, limit = 50): Promise<any[]> {
   try {
     const { data: relationships } = await supabase
-      .from('user_relationships')
+      .from('follow')
       .select(`
         followed_id,
-        users:followed_id (
+        profile:followed_id (
           id,
           username,
-          nickname,
+          display_name,
           core_realm,
           follower_count,
           following_count,
@@ -1146,8 +1146,8 @@ export async function getFollowing(userId: string, limit = 50): Promise<any[]> {
     if (!relationships) return [];
 
     return relationships
-      .filter(rel => rel.users)
-      .map(rel => rel.users);
+      .filter(rel => rel.profile)
+      .map(rel => rel.profile);
 
   } catch (error) {
     console.error('Get following error:', error);
@@ -1158,13 +1158,13 @@ export async function getFollowing(userId: string, limit = 50): Promise<any[]> {
 export async function getFollowers(userId: string, limit = 50): Promise<any[]> {
   try {
     const { data: relationships } = await supabase
-      .from('user_relationships')
+      .from('follow')
       .select(`
         follower_id,
-        users:follower_id (
+        profile:follower_id (
           id,
           username,
-          nickname,
+          display_name,
           core_realm,
           follower_count,
           following_count,
@@ -1178,8 +1178,8 @@ export async function getFollowers(userId: string, limit = 50): Promise<any[]> {
     if (!relationships) return [];
 
     return relationships
-      .filter(rel => rel.users)
-      .map(rel => rel.users);
+      .filter(rel => rel.profile)
+      .map(rel => rel.profile);
 
   } catch (error) {
     console.error('Get followers error:', error);
@@ -1192,16 +1192,16 @@ export async function getUserProfileWithFollowStatus(userId: string): Promise<an
     const { data: { user: currentUser } } = await supabase.auth.getUser();
     
     const { data: profile } = await supabase
-      .from('users')
+      .from('profile')
       .select(`
         id,
         username,
-        nickname,
+        display_name,
         core_realm,
         follower_count,
         following_count,
         created_at,
-        profile_image_url
+        avatar_url
       `)
       .eq('id', userId)
       .single();
@@ -1212,8 +1212,8 @@ export async function getUserProfileWithFollowStatus(userId: string): Promise<an
     let isFollowing = false;
     if (currentUser && currentUser.id !== userId) {
       const { data: followData } = await supabase
-        .from('user_relationships')
-        .select('id')
+        .from('follow')
+        .select('follower_id')
         .eq('follower_id', currentUser.id)
         .eq('followed_id', userId)
         .single();

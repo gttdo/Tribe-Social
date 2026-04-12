@@ -12,7 +12,7 @@ interface UserAvatarRowProps {
     username?: string | null;
     nickname?: string | null;
     description?: string | null;
-    profile_image_url?: string | null;
+    avatar_url?: string | null;
     coreRealm?: string | null;
     avatar?: string | null;
     xp?: number | null;
@@ -93,9 +93,9 @@ export function UserAvatarRow({
     >
       {/* Avatar */}
       <Avatar className={avatarSizes[avatarSize]}>
-        {(user.profile_image_url || user.avatar) && (
+        {(user.avatar_url || user.avatar) && (
           <AvatarImage 
-            src={user.profile_image_url || user.avatar || ''} 
+            src={user.avatar_url || user.avatar || ''} 
             alt={safeProfile.displayName} 
           />
         )}

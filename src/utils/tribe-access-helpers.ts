@@ -167,8 +167,8 @@ async function notifyTribeAdmins(tribeId: string, requesterId: string, requestId
     // Get requester and tribe info for notification
     const [requesterResult, tribeResult] = await Promise.allSettled([
       supabase
-        .from('users')
-        .select('username, nickname')
+        .from('profile')
+        .select('display_name')
         .eq('id', requesterId)
         .single(),
       supabase
@@ -179,7 +179,7 @@ async function notifyTribeAdmins(tribeId: string, requesterId: string, requestId
     ]);
 
     const requesterName = requesterResult.status === 'fulfilled' && requesterResult.value.data
-      ? (requesterResult.value.data.nickname || requesterResult.value.data.username || 'Someone')
+      ? (requesterResult.value.data.display_name || 'Someone')
       : 'Someone';
 
     const tribeName = tribeResult.status === 'fulfilled' && tribeResult.value.data
@@ -203,7 +203,7 @@ async function notifyTribeAdmins(tribeId: string, requesterId: string, requestId
     }));
 
     const { error: notificationError } = await supabase
-      .from('notifications')
+      .from('notification')
       .insert(notifications);
 
     if (notificationError) {

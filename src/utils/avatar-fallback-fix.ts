@@ -8,7 +8,7 @@ export function transformDatabaseFallbackPost(post: any, postUser: any, savedSet
     userId: post.user_id,
     username: postUser?.username || 'unknown_user',
     nickname: postUser?.username || 'Unknown User',
-    avatar: postUser?.profile_image_url || null, // FIXED: Added missing avatar field
+    avatar: postUser?.avatar_url || null, // FIXED: Added missing avatar field
     coreRealm: 'general', // FIXED: Added missing coreRealm field
     type: post.post_type || 'thought',
     post_type: post.post_type || 'thought',

@@ -6,9 +6,8 @@ import { ScrollArea } from './ui/scroll-area';
 import { Avatar, AvatarFallback } from './ui/avatar';
 import { ArrowLeft, Send, MessageCircle, X, ChevronDown, Loader2, Heart } from 'lucide-react';
 import { CommentRow } from './CommentRow';
-import { QuickReactions } from './QuickReactions';
 import { EmptyState } from './EmptyState';
-import { toast } from 'sonner@2.0.3';
+import { toast } from 'sonner';
 import { cn } from './ui/utils';
 import { UserResult, UserInfo, CoreRealm } from '../App';
 
@@ -165,7 +164,7 @@ export function CommentsSystem({
       const response = await makeAuthenticatedRequest(`/make-server-70df0d6e/posts/${post.id}/comments`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ body: trimmedComment }) // Send trimmed comment
+        body: JSON.stringify({ body: trimmedComment, parent_id: replyingTo || undefined })
       });
 
       if (response.comment) {
@@ -192,18 +191,6 @@ export function CommentsSystem({
     }
   };
 
-  const handleQuickReaction = async (emoji: string) => {
-    const commentText = emoji;
-    setNewComment(commentText);
-    
-    // Auto-submit emoji reactions
-    if (userInfo && userResult) {
-      setTimeout(() => {
-        handleSubmitComment(new Event('submit') as any);
-      }, 100);
-    }
-  };
-
   const handleLikeComment = async (commentId: string) => {
     // Optimistic update
     setComments(prev => prev.map(comment => 
@@ -217,8 +204,16 @@ export function CommentsSystem({
     ));
 
     try {
-      // TODO: Implement comment like API call
-      console.log('Like comment:', commentId);
+      const { supabase } = await import('../utils/supabase/client');
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user?.id) return;
+
+      const isNowLiked = comments.find(c => c.id === commentId)?.isLiked;
+      if (isNowLiked) {
+        await supabase.from('comment_like').insert({ user_id: session.user.id, comment_id: commentId });
+      } else {
+        await supabase.from('comment_like').delete().eq('user_id', session.user.id).eq('comment_id', commentId);
+      }
     } catch (error) {
       console.error('Failed to like comment:', error);
       // Revert optimistic update on error
@@ -292,12 +287,6 @@ export function CommentsSystem({
           )}
         </div>
       </ScrollArea>
-
-      {/* Quick Reactions */}
-      <QuickReactions 
-        onReaction={handleQuickReaction}
-        className="border-t border-muted-lavender/20"
-      />
 
       {/* Comment Input */}
       <div className="border-t border-muted-lavender/20 bg-midnight-black/80 p-4">

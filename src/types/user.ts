@@ -2,9 +2,9 @@
 
 export type PublicProfile = {
   id: string;
-  username: string | null;
-  profile_image_url: string | null;
-  description: string | null;
+  display_name: string | null;
+  avatar_url: string | null;
+  bio: string | null;
   xp: number;
   created_at: string;
 };
@@ -35,8 +35,8 @@ export interface UserInfo {
 }
 
 export interface UserResult {
-  nickname: string;
-  description: string;
+  display_name: string;
+  bio: string;
   xp: number;
   badges: string[];
   coreRealm?: 'mirrorcore' | 'embercore' | 'shadowcore';

@@ -21,7 +21,7 @@ interface EditProfilePageProps {
     id: string;
     username: string;
     description?: string;
-    profile_image_url?: string;
+    avatar_url?: string;
   } | null;
   onBack: () => void;
   onProfileUpdate?: (updatedUser: any) => void;
@@ -29,8 +29,8 @@ interface EditProfilePageProps {
 
 export function EditProfilePage({ currentUser, onBack, onProfileUpdate }: EditProfilePageProps) {
   const [username, setUsername] = useState(currentUser?.username || '');
-  const [bio, setBio] = useState(currentUser?.description || '');
-  const [profileImageUrl, setProfileImageUrl] = useState(currentUser?.profile_image_url || '');
+  const [bio, setBio] = useState(currentUser?.bio || '');
+  const [profileImageUrl, setProfileImageUrl] = useState(currentUser?.avatar_url || '');
   const [isLoading, setIsLoading] = useState(false);
   const [isAvatarDialogOpen, setIsAvatarDialogOpen] = useState(false);
   const [errors, setErrors] = useState({
@@ -42,8 +42,8 @@ export function EditProfilePage({ currentUser, onBack, onProfileUpdate }: EditPr
   useEffect(() => {
     if (currentUser) {
       setUsername(currentUser.username || '');
-      setBio(currentUser.description || '');
-      setProfileImageUrl(currentUser.profile_image_url || '');
+      setBio(currentUser.bio || '');
+      setProfileImageUrl(currentUser.avatar_url || '');
     }
   }, [currentUser?.id]); // Only depend on user ID, not the entire object
 
@@ -122,8 +122,7 @@ export function EditProfilePage({ currentUser, onBack, onProfileUpdate }: EditPr
       const updateData = {
         username: username.trim(),
         bio: bio.trim(), // Send as 'bio' to match server expectations  
-        description: bio.trim(), // Also send as 'description' for compatibility
-        profile_image_url: profileImageUrl
+        avatar_url: profileImageUrl
       };
 
       const result = await updateUserProfile(updateData);
@@ -154,8 +153,8 @@ export function EditProfilePage({ currentUser, onBack, onProfileUpdate }: EditPr
   // Check if form has changes
   const hasChanges = 
     username !== (currentUser?.username || '') ||
-    bio !== (currentUser?.description || '') ||
-    profileImageUrl !== (currentUser?.profile_image_url || '');
+    bio !== (currentUser?.bio || '') ||
+    profileImageUrl !== (currentUser?.avatar_url || '');
 
   // Check if form is valid
   const isFormValid = 
